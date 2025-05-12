@@ -65,47 +65,52 @@
 ;(value '(*let ((x 'hello)) x))
 
 
-;;; "TLS-Bind":
-  ;; Assumption: Provided 2 equal length sets of sexps, TLS properly constructs entries of [(name)(value)] that
-    ;; make up an environment.
-  ;; [INCORRECT] TLS-Bind makes no changes to the data of TLS, only its representation. Therefore, each member of
-    ;; TLS-Bind should be an S-exp and a member of TLS 
+;===========================================================================================
+#|
+ Environment Specification for TLS:
+  ;; TLS' environment subsystem manages the ((name)(value)) pair entries that makeup the environment.
+     
+  ;; The primary operations that handle environment management are:
+         - new-entry:
+             * Pre-condition: The first argument is a list of names and the second is a list of corresponding values.
+             * Post-condition: Returns a new environment entry, represented as a pair of names and values.
+         - lookup-in-entry
+             * Pre-condition: The entry is a pair of two lists (names and values).
+             * Post-condition: If the name is found, returns the corresponding value; otherwise, invokes entry-f.
+         - extend-table
+             * Pre-condition: New entry is a valid environment entry.
+             * Post-condition: Returns a new environment table with the entry added at the front.
+         - lookup-in-table
+             * Pre-condition: table is a list of environment entries.
+             * Post-condition: If the name is found in any entry, return its value; otherwise, invoke table-f.
 
- ; Pre: Given an entry ((names)(vals))
- ; Post: Return the entry in binding form
- ; IDEA: cdr down both names and vals and cons the pairs to create a binding list of entries
-    ; using existing accessors: first, second
+  ;; In tandem, these functions are used to build and maintain a stack of environment entries (bindings).
 
-;;; Helper(s)
-
-;; merge
- ; pre: Given 2 lists, list1 and list2
- ; Post: Return the list whose elements are interwoven with elements of lists1 and 2
-(define (merge lst1 lst2)
-  (cond ((null? lst1) lst2)
-        ((null? lst2) lst1)
-        (else (cons (list (car lst1) (car lst2)) (merge (cdr lst1) (cdr lst2))))))
-
-;(merge '(x y z) '(1 2 3))
-;(merge '((x y) z) '(1 2 3))
-
-;;; Constructor
- ;; Pre: Given an entry of the form: ((names...)(values...))
- ;; Post: Return the entry as a binding
-(define (new-binding entry)
-     (let ((names (first entry))
-           (values (second entry)))
-               (merge names values)))
-
-;;;; Test - Creating a Bind
-;(let ((example (build '(x y z) '(1 2 3))))
-;   (third (new-binding example)))
+  ;; Interpreter property:
+      - Lexical Scoping: In the environment level*, maintained by extend-table.
+         * As opposed to the underlying R5RS
+  
+  ;; Environment properties:
+      - Env structure: A nested list
+      - Entry structure: "An entry is a pair of lists whose first list is a set. Also,
+          the lists must be of equal length."
+                     
+|#
+;======================================================================================
 
 
-; Selectors --- Stay the same, the entries are now a list of tables
-(define first-bind car) ; first == (x 1)
-(define second-bind cadr) ; second == (y 2)
-(define third-bind caadr) ; (z 3)
+
+#| ======================================================================================
+   Part 2: Change the representation of the env and show that the representation satisfies the spec
+     and works with the rest of the interpreter
+       Claim: The environment subsytem of TLS is structured in a way that allows it to act as
+         an abstract data type. Therefore, an a-list structure for the env still satisfies
+         the specifications stated before.
+
+       ; Assume that the input is already in a-list form: ((name value) (name2 value2) ....)
+
+   ============================================================================================
+|# 
 
 
   
