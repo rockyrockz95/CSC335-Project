@@ -81,8 +81,8 @@
               ((eq? (caar clauses) 'else)
                (cond ((not (null? (cdr clauses))) #f) ;if it is a else clause, then it should be the last clause of the expression, if not then it should return #f,
                      (else (simple-check (cdr (car clauses)))))) ;syntax check the result statement of else clause
-              ((pair? (caar clauses)) (and (and (simple-check (caar clauses)) (simple-check (cdr (car clauses)))) (loop (cdr clauses))))
-                                       ;(member (caaar clauses) primitives)) (and (primitive-length (caar clauses)) (loop (cdr clauses))));check the predicate statement of the clause and see if it has the correct number of arguments,  NEED DEBUG
+              ((atom? (caar clauses)) #f) ;predicate cannot be an atom, if it is an atom, then return #f
+              ((pair? (caar clauses)) (if (member (caaar clauses) primitives) (and (and (simple-check (caar clauses)) (simple-check (cdr (car clauses)))) (loop (cdr clauses))) #f)) 
               ((< (length (car clauses)) 2) #f) ;each clause should have a condition + result, which means the length of each clause can not be less than 2, if so, return #f
               ;((pair? (cadr (car clauses))) (and (syntax-checker (cadr (car clauses))) (loop (cdr clauses)))) ;
               (else  (loop (cdr clauses))))) ;if none of the clauses were triggered, then it should search the rest of the clauses
@@ -218,7 +218,7 @@
 
 (simple-check +01i) ;->f
 
-(simple-check '(cond ((> x 0) (lambda (x) (+ x 1))) ((< x 0) (lambda (x) (- x 1))) (else '()))) ;->t
+(simple-check '(cond ((> x 0) (lambda (x) (+ x 1))) ((< x 0) (lambda (x) (- x 1))) (else (+ 2 3 4)))) ;->f
 
 
 #| ==========================================================================================
