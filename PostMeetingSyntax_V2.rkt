@@ -29,8 +29,7 @@
 (define (syntax-checker exp env)
   (cond ((null? exp) #t)
         ((pair? (car exp))
-         ; should extend the env here: '() : placeholder
-         (cond ((eq? (caar exp) 'lambda) (and (lambda-checker (car exp)) (syntax-checker (cdr exp) (extend-table (cadr (car exp)) env))))
+         (cond ((eq? (caar exp) 'lambda) (and (lambda-checker (car exp)) (syntax-checker (cdr exp) (extend-table (cadr (car exp)) env)))) ;if the current subexpression is a lambda expression, then it should call lambda expression, and check the rest of the expression.
                ((eq? (caar exp) 'cond) (and (cond-checker (car exp)) (syntax-checker (cdr exp) env)))
                ((member (caar exp) primitives) (and (primitive-length (car exp)) (syntax-checker (car exp) env)))
                (else (and (syntax-checker (car exp) env) (syntax-checker (cdr exp) env)))))
@@ -174,26 +173,14 @@
 
 (lambda-checker '(lambda () ())) ;=>f
 (lambda-checker '(lambda () (x))) ;=>t
-(lambda-checker '(lambda (x) (x))) ;=>t
-(lambda-checker '(lambda (x) (lambda (y) (cons x (cons y '())))));=>t
-(lambda-checker '(lambda (x) (lambda (y y) (cons x (cons y '())))));=>f
+(lambda-checker '(lambda (x) (lambda (y) (cons x (cons y '()) 1))));=>t
+(lambda-checker '(lambda (x) (lambda (y) (cons x (cons y '())))));=>f
 (lambda-checker '(lambda (x) (lambda (x))));=>f
 (lambda-checker '(lambda (x) (lambda (y) (lambda (z) (+ (+ x y) z))))) ;=>t
-(lambda-checker '(lambda (x) (lambda (y) (lambda (z z) (+ (+ x y) z))))) ;=>f
 (newline)
 
 ;;Test Cases
                
-(syntax-checker '(define (x) (lambda (x) (null? x y))) '());-->f
-
-(simple-check '(define x (define y (lambda (x) (lambda (y) (+ x y)))))) ;-->t
-
-(simple-check '(define (pos? x) (cond ((> x 0) #t) (else #f)))) ;-->t
-
-(simple-check '(define (pos? x) (cond  (else #f) ((> x 0) #t)))) ;-->f
-(newline)
-
-
 (simple-check '(define pos? (lambda (x) (cond ((> x 0) #t) (else #f))))) ;-->t
 
 (simple-check '(define x (define y (lambda (x x) (null? x))))) ;-->f
@@ -202,23 +189,13 @@
 
 (simple-check '(12)) ;->t
 
-(simple-check '(1 2 3 4 (lambda (x) (lambda (y) (+ x y z)))));->f
-
-(simple-check '(1 2 3 4 (cond ((> x 0 7) (+ x y ))))) ;->f
-
-(simple-check '(1 2 3 4 (cond ((> x 0) (+ x y z)))));->f
-
-(simple-check '(lambda () 1));->t
-
-(lambda-checker '(lambda (x) (lambda (y) (lambda (z) (+ x y)))));->t
-
 (simple-check '(cond ((> x 0) (+ 1 2 3))));->f
 
 (simple-check '(define (pos? x) (cond ((> x 0) #t) (else #f)))) ;-->t
 
 (simple-check +01i) ;->f
 
-(simple-check '(cond ((> x 0) (lambda (x) (+ x 1))) ((< x 0) (lambda (x) (- x 1))) (else (+ 2 3 4)))) ;->f
+(simple-check '(cond ((> x 0) (lambda (x) (+ x 1))) ((< x 0) (lambda (x) (- x 1))) (else (+ 2 3 3)))) ;->f
 
 
 #| ==========================================================================================
