@@ -9,18 +9,11 @@
 ;if the element if not a pari, then we should check if it is a primitive, if it is then we should check whether it has the correct length, also the correctness of the rest of the expression
 ;if none of the clauses above were triggered, then it should recurse into the expression and check the rest of the expression.
 
-;(define (simple-check exp)
-;  (cond ((atom? exp)
-;         (cond ((not (rational? exp)) #f)
-;               (else #t))) ;;; only allows rational atoms -- need symbols and rationals for free-vars check
-;        ((pair? exp) (syntax-checker exp))
-;        (else #f)))
-
 (define (simple-check exp)
   (cond ((atom? exp)
           (or (rational? exp) (symbol? exp)))
         ((pair? exp) (syntax-checker exp '())) ; empty env to add closure records -- placeholder now
-        (else #f)))
+        ))
 
 ; added env to deep search
   ; lambda creates closures + extends table
