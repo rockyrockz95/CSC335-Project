@@ -173,7 +173,7 @@
 
 (lambda-checker '(lambda () ())) ;=>f
 (lambda-checker '(lambda () (x))) ;=>t
-(lambda-checker '(lambda (x) (lambda (y) (cons x (cons y '()) 1))));=>t
+(lambda-checker '(lambda (x) (lambda (y) (cons x (cons y '()) 1))));=>f
 (lambda-checker '(lambda (x) (lambda (y) (cons x (cons y '())))));=>f
 (lambda-checker '(lambda (x) (lambda (x))));=>f
 (lambda-checker '(lambda (x) (lambda (y) (lambda (z) (+ (+ x y) z))))) ;=>t
