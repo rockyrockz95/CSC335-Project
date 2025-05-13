@@ -10,7 +10,8 @@
 ;if none of the clauses above were triggered, then it should recurse into the expression and check the rest of the expression.
 
 (define (simple-check exp)
-  (cond ((atom? exp)
+  (cond ((null? exp) #t)
+        ((atom? exp)
           (or (rational? exp) (symbol? exp)))
         ((pair? exp) (syntax-checker exp '())) ; empty env to add closure records -- placeholder now
         ))
