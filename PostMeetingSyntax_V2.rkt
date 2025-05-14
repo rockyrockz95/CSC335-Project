@@ -12,7 +12,7 @@
 (define (simple-check exp)
   (cond ((null? exp) #t)
         ((atom? exp)
-          (or (rational? exp) (symbol? exp)))
+          (or (or (rational? exp) (symbol? exp)) (boolean? exp)))
         ((pair? exp) (syntax-checker exp '())) ; empty env to add closure records -- placeholder now
         ))
 
@@ -26,11 +26,11 @@
          (cond ((eq? (caar exp) 'lambda) (and (lambda-checker (car exp)) (syntax-checker (cdr exp) (extend-table (cadr (car exp)) env)))) ;if the current subexpression is a lambda expression, then it should call lambda expression, and check the rest of the expression.
                ((eq? (caar exp) 'cond) (and (cond-checker (car exp)) (syntax-checker (cdr exp) env)))
                ((member (caar exp) primitives) (and (primitive-length (car exp)) (syntax-checker (car exp) env)))
-               (else (and (syntax-checker (car exp) env) (syntax-checker (cdr exp) env)))))
-        ((eq? (car exp) 'lambda) (and (lambda-checker exp) (syntax-checker (cdr exp) env)))
-        ((eq? (car exp) 'cond) (and (cond-checker exp) (syntax-checker (cdr exp) env)))
-        ((member (car exp) primitives) (and (primitive-length exp) (syntax-checker (cdr exp) env)))
-        (else (syntax-checker (cdr exp) env))))
+               (else (and (simple-check (car exp)) (simple-check (cdr exp))))))
+        ((eq? (car exp) 'lambda) (and (lambda-checker exp) (simple-check (cdr exp))))
+        ((eq? (car exp) 'cond) (and (cond-checker exp) (simple-check (cdr exp))))
+        ((member (car exp) primitives) (and (primitive-length exp) (simple-check (cdr exp))))
+        (else (and (simple-check (car exp)) (simple-check (cdr exp))))))
 
 ;define a list of primitives
 (define primitives '(+ - * cons car cdr cond lambda modulo define if and or > < = eq? null? zero?))
@@ -45,7 +45,10 @@
         ((eq? (car exp) 'cons) (eq? (length exp) 3))
         ((eq? (car exp) 'lambda) (eq? (length exp) 3))
         ((eq? (car exp) 'modulo) (eq? (length exp) 3))
-        ((eq? (car exp) 'define) (eq? (length exp) 3))
+        ((eq? (car exp) 'define)
+         (cond ((atom? (cadr exp)) (eq? (length exp) 3))
+               ((pair? (cadr exp)) (>= (length exp) 3))
+               (else #f)))
         ((eq? (car exp) 'if) (eq? (length exp) 4))
          ((eq? (car exp) 'and) (eq? (length exp) 3))
          ((eq? (car exp) 'or) (eq? (length exp) 3))
@@ -88,7 +91,6 @@
 (cond-checker '(cond ((> x 0) 'pos) (else 'neg) ((< x 0) #t))) ;=>f
 (cond-checker '(cond ((> x 0) 'pos) ((< x 0 1) 'neg) (else #t))) ;=>f
 (cond-checker '(cond (else #t) ((> x 0) 'pos))) ;=>f
-
 (newline)
 
 ;nested cond test cases
@@ -168,7 +170,7 @@
 (lambda-checker '(lambda () ())) ;=>f
 (lambda-checker '(lambda () (x))) ;=>t
 (lambda-checker '(lambda (x) (lambda (y) (cons x (cons y '()) 1))));=>f
-(lambda-checker '(lambda (x) (lambda (y) (cons x (cons y '())))));=>f
+(lambda-checker '(lambda (x) (lambda (y) (cons x (cons y '())))));=>t
 (lambda-checker '(lambda (x) (lambda (x))));=>f
 (lambda-checker '(lambda (x) (lambda (y) (lambda (z) (+ (+ x y) z))))) ;=>t
 (newline)
@@ -189,7 +191,14 @@
 
 (simple-check +01i) ;->f
 
-(simple-check '(cond ((> x 0) (lambda (x) (+ x 1))) ((< x 0) (lambda (x) (- x 1))) (else (+ 2 3 3)))) ;->f
+(simple-check '(cond ((> x 0) (lambda (x) (+ x 1))) ((< x 0) (lambda (x) (- x 1))) (else (+ 2 3)))) ;->t
+
+(simple-check '(define x (lambda (x) (+ x 1))));->t
+
+(simple-check '(define x (lambda (x) (+ x 1 2))));->f
+
+(simple-check '(define (module x) (define (add m n) (cond ((zero? m) n) (else (+ 1 (add (- m 1) n))))) (cond ((eq? m '+) add))));->t
+
 
 
 #| ==========================================================================================
