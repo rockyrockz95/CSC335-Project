@@ -244,7 +244,7 @@ Ex:
 (define (plus-1 x)
     (lambda () (+ x 1)))
 
-(plus-1 1) ;when you call plus-1 directly, it'll return a procedure, which is the inner lambda. It creates a closure where it captures the lexical environment, where it contains the binding of variable x with 1.
+(plus-1 1) ;when you call plus-1 directly, it'll return a procedure, which is the inner lambda and it creates a closure where it captures the lexical environment, where it contains the binding of variable x with 1.
 
 ((plus-1 1)); when you try to call the inner lambda, it will return 2 since we passed the argument 1 and the inner lambda should increment the input by 1. This is a result of closure. When plus-1 is called, it captures the lexical environment with x=1, then because of lexical scope, inner lambda would have access to the variable x because the varibale x is in its parent function's scope.
 
@@ -272,7 +272,7 @@ In the TLS scheme,when defining a lambda expression, the function *lambda would 
 Ex:
 (value '(lambda (x) (cons x 1)));->(non-primitive (() (x) (+ x 1))). In this case, the first part of exp is the non-primitive tag, and the second part is the environment env with the formal body of the lambda expression. The empty list is the table or environment
 
-During function application, if the function is a primitive function, then according to our base case, they do not involve the creation of closure, hence the interpreter would handle their closure and lexical scope correctly. If the function is a closure, then the function will be processed by *lambda to create a closure that captures environment, which is empty at top-level. Then it will evaluate the arguments, and apply closure to the argument using apply-closure to extend the environment with a new entry of the variable with its evaluated arguments, which means now the inner function have access to variables in the outer function as they are stored in the environment, whereas the outer function could never access the variables in the inner function, as by the time the outer function are evaluated with their respected arguments, variables of the inner function are not yet recorded in the table, so they can't find it in the table even if they try to. Hence, lexical scope is preserved.
+During function application, if the function is a primitive function, then according to our base case, they do not involve the creation of closure, hence the interpreter would handle their closure and lexical scope correctly. If the function is a closure, then the function will be processed by *lambda to create a closure that captures environment, which is empty at top-level.  When evaluating, the function apply-closure would evaluate the function body in the environment obtain by closure, and extend the environment with a new entry of the variable with its evaluated arguments, which means now the inner function have access to variables in the outer function as they are stored in the environment, whereas the outer function could never access the variables in the inner function, as by the time the outer function are evaluated with their respected arguments, variables of the inner function are not yet recorded in the table, so they can't find it in the table even if they try to. Hence, lexical scope is preserved.
 
 Therefore,the TLS scheme correctly implements closure and lexical scope.
 
