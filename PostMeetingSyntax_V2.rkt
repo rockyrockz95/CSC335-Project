@@ -1,4 +1,18 @@
-(load "1.1.rkt")
+;;Helper Function
+;;Pre: a datum x
+;;Post: Return #t if x is an atom, else #f
+
+(define atom?
+  (lambda (x)
+    (cond
+     ((null? x) #f)  
+     ((pair? x) #f)   
+     (else #t))))  
+
+;Test Case
+(atom? 1);->t
+(atom? '(1));->f
+(newline)
 
 ;;Top Level Function
 
@@ -37,8 +51,8 @@
         (else (and (simple-check (car exp)) (simple-check (cdr exp))))))
 
 ;define a list of primitives
-(define primitives '(+ - * cons car cdr cond lambda modulo define if and or > < = eq? null? zero? / quotient))
-
+(define primitives '(+ - * cons car cdr cond lambda modulo define if and or > < = eq? null? zero? / quotient number? symbol? rational? boolean?))
+  
 
 ;pre: expression
 ;post: return true if the primitive matches its length, else return false
@@ -51,6 +65,10 @@
         ((eq? (car exp) 'cons) (eq? (length exp) 3))
         ((eq? (car exp) 'car) (eq? (length exp) 2))
         ((eq? (car exp) 'cdr) (eq? (length exp) 2))
+        ((eq? (car exp) 'number?) (eq? (length exp) 2))
+        ((eq? (car exp) 'symbol?)(eq? (length exp) 2))
+        ((eq? (car exp) 'rational?) (eq? (length exp) 2))
+        ((eq? (car exp) 'boolean?) (eq? (length exp) 2))
         ((eq? (car exp) 'lambda) (eq? (length exp) 3))
         ((eq? (car exp) 'modulo) (eq? (length exp) 3))
         ((eq? (car exp) 'define)
@@ -90,7 +108,7 @@
 ;;Clauses need to be a pair, if not then return #f
 ;;Each clause needs to be a pair, if not then return #f
 ;;If it is a else-clause, then it should be the last clause of the expression, if not return #f. If it is the last clause, then we should syntax-check the result statement of the else clause.
-;;predicate statement of each clause cannot be an atom, if it is then it should return #f
+;;if the predicate statement of the clause is a atom, then it needs to be a boolean, else return #f
 ;;result statement of each clause needs to be the last element of a clause, if not then it should return #f
 ;;if the predicate statement is a pair, then it should check whether the procedure is one of primitives, if it is then it should syntax check the predicate, result statement and the rest of the clauses. If any of them return false, then the expression should be invalid.
 ;;each clause should have a predicate + result, which means the length of each clause can not be less than 2, if so, return #f
@@ -105,9 +123,9 @@
               ((eq? (caar clauses) 'else)
                (cond ((not (null? (cdr clauses))) #f)
                      (else (simple-check (cdr (car clauses)))))) 
-              ((atom? (caar clauses)) #f) 
+              ((and (atom? (caar clauses)) (not (boolean? (caar clauses)))) #f) 
               ((not (null? (cddr (car clauses)))) #f) 
-              ((pair? (caar clauses)) (if (member (caaar clauses) primitives) (and (and (simple-check (caar clauses)) (simple-check (cdr (car clauses)))) (loop (cdr clauses))) #f)) 
+              ((pair? (caar clauses)) (and (and (simple-check (caar clauses)) (simple-check (cdr (car clauses)))) (loop (cdr clauses))))
               ((< (length (car clauses)) 2) #f)
               (else  (loop (cdr clauses))))) 
       #f)) 
@@ -220,10 +238,12 @@
 
 (syntax-checker '(17 121 13123132 (lambda (x) (zero? x))));->t
 (syntax-checker '(17 121 13123132 (lambda (x) (zero? x 1))));->f
+
 (syntax-checker '(define (find? target set)             
   (cond ((null? set) #f)
         ((eq? (car set) target) #t) 
         (else (find? target (cdr set))))));->t
+
 (syntax-checker '(define (find? target set)             
   (cond ((null? set) #f)
         ((eq? (car set) target) #t) 
