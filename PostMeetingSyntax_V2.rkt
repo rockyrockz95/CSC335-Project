@@ -110,7 +110,7 @@
 ;;If it is a else-clause, then it should be the last clause of the expression, if not return #f. If it is the last clause, then we should syntax-check the result statement of the else clause.
 ;;if the predicate statement of the clause is a atom, then it needs to be a boolean, else return #f
 ;;result statement of each clause needs to be the last element of a clause, if not then it should return #f
-;;if the predicate statement is a pair, then it should check whether the procedure is one of primitives, if it is then it should syntax check the predicate, result statement and the rest of the clauses. If any of them return false, then the expression should be invalid.
+;;if the predicate statement is a pair, then it should syntax check the predicate, result statement and the rest of the clauses. If any of them return false, then the expression should be invalid.
 ;;each clause should have a predicate + result, which means the length of each clause can not be less than 2, if so, return #f
 ;;if none of the above were triggered, then it should recurse into the rest of the expression and check whether it is valid.
 
