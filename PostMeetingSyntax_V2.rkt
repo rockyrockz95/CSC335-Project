@@ -13,7 +13,7 @@
   (cond ((null? exp) #t)
         ((atom? exp)
           (or (or (rational? exp) (symbol? exp)) (boolean? exp)))
-        ((pair? exp) (syntax-checker exp '()))
+        ((pair? exp) (syntax-checker exp))
         ))
 
 ;pre: expression
@@ -24,12 +24,12 @@
 ;if the element if not a pair, then we should check if it is a lambda/cond/primitives, if it is then we should check the correctness of the expression, also the correctness of the rest of the expression
 ;if none of the clauses above were triggered, then it should recurse into the expression and check the rest of the expression.
 
-(define (syntax-checker exp env)
+(define (syntax-checker exp)
   (cond ((null? exp) #t)
         ((pair? (car exp))
-         (cond ((eq? (caar exp) 'lambda) (and (lambda-checker (car exp)) (syntax-checker (cdr exp) (extend-table (cadr (car exp)) env)))) 
-               ((eq? (caar exp) 'cond) (and (cond-checker (car exp)) (syntax-checker (cdr exp) env)))
-               ((member (caar exp) primitives) (and (and (primitive-length (car exp)) (syntax-checker (car exp) env)) (syntax-checker (cdr exp) env)))
+         (cond ((eq? (caar exp) 'lambda) (and (lambda-checker (car exp)) (simple-check (cdr exp))))
+               ((eq? (caar exp) 'cond) (and (cond-checker (car exp)) (simple-check (cdr exp))))
+               ((member (caar exp) primitives) (and (and (primitive-length (car exp)) (simple-check (car exp))) (simple-check (cdr exp))))
                (else (and (simple-check (car exp)) (simple-check (cdr exp))))))
         ((eq? (car exp) 'lambda) (and (lambda-checker exp) (simple-check (cdr exp))))
         ((eq? (car exp) 'cond) (and (cond-checker exp) (simple-check (cdr exp))))
@@ -49,6 +49,8 @@
         ((eq? (car exp) '/) (eq? (length exp) 3))
         ((eq? (car exp) 'quotient) (eq? (length exp) 3))
         ((eq? (car exp) 'cons) (eq? (length exp) 3))
+        ((eq? (car exp) 'car) (eq? (length exp) 2))
+        ((eq? (car exp) 'cdr) (eq? (length exp) 2))
         ((eq? (car exp) 'lambda) (eq? (length exp) 3))
         ((eq? (car exp) 'modulo) (eq? (length exp) 3))
         ((eq? (car exp) 'define)
@@ -67,6 +69,15 @@
           ((eq? (car exp) 'zero?) (eq? (length exp) 2))
          ))
 
+;;Test Case:
+(primitive-length '(cons 1 2));->t
+(primitive-length '(cons 1 2 3));->f
+(primitive-length '(define x (lambda (x) (+ x 1))));->t
+(primitive-length '(define x (lambda (x) (+ x 1)) (lambda (y) (+ y 1))));->f
+(primitive-length '(define (x) (define y (lambda (x) (+ x 1))) y));->t
+(primitive-length '(define (x)));->f
+
+(newline)
 
 ;;Cond syntax checker
 ;;expr: the expression that we are checking whether it is a valid cond expression or not
@@ -104,10 +115,10 @@
 
 ;;Test Cases
 (cond-checker '(cond ((> x y) 'pos) (else 'neg))) ;=>t
-(cond-checker '(cond ((> x 0) 'pos) ((< x 0) 'neg)))   ;=>t
-(cond-checker '(cond ((> x 0) 'pos) (else 'neg) ((< x 0) #t))) ;=>f
-(cond-checker '(cond ((> x 0) 'pos) ((< x 0 1) 'neg) (else #t))) ;=>f
 (cond-checker '(cond (else #t) ((> x 0) 'pos))) ;=>f
+(cond-checker '(cond ((> x 0) 'pos) ((< x 0) 'neg) (else #t))) ;=>t
+(cond-checker '(cond ((> x 0) 'pos) ((< x 0 1) 'neg) (else #t))) ;=>f
+
 (newline)
 
 ;nested cond test cases
@@ -122,21 +133,16 @@
        (else 'z)))    
     (else #f))) ;=>t
 
+
+
 (cond-checker '(cond
     ((< n 0) 'neg)
     ((= n 0)
      (cond
        ((< n 10) 'x)
        ((< n 100) 'y)
-       (else
-        (cond
-          ((< n 10) 'x)
-          ((< n 100) 'y)
-          (else '1)
-          ))))
-    (else #f)
-    ((> n 10) 1))) ;=>f
-
+       (else 'z)))    
+    (else (+ 1 2 3)))) ;=>f
 
 
 (newline)
@@ -209,31 +215,29 @@
 (lambda-checker '(lambda (x) (lambda (y) (cons x (cons y '())))));=>t
 (lambda-checker '(lambda (x) (lambda (x))));=>f
 (lambda-checker '(lambda (x) (lambda (y) (lambda (z) (+ (+ x y) z))))) ;=>t
+(lambda-checker '(lambda (x) (lambda (y) (lambda (z) (+ (+ x y) z 1))))) ;=>f
 (newline)
 
-;;Test Cases
-               
-(simple-check '(define pos? (lambda (x) (cond ((> x 0) #t) (else #f))))) ;-->t
+(syntax-checker '(17 121 13123132 (lambda (x) (zero? x))));->t
+(syntax-checker '(17 121 13123132 (lambda (x) (zero? x 1))));->f
+(syntax-checker '(define (find? target set)             
+  (cond ((null? set) #f)
+        ((eq? (car set) target) #t) 
+        (else (find? target (cdr set))))));->t
+(syntax-checker '(define (find? target set)             
+  (cond ((null? set) #f)
+        ((eq? (car set) target) #t) 
+        (else (find? target (cdr set 1))))));->f
 
-(simple-check '(define x (define y (lambda (x x) (null? x))))) ;-->f
+(newline)
 
-(simple-check '(17 121 13212 (lambda (x) (null? x)))) ;-->t
+(simple-check 12);->t
+(simple-check #t);->t
+(simple-check 'x);->t
+(simple-check 0+1i);->f
 
-(simple-check '(12)) ;->t
+(newline)
 
-(simple-check '(cond ((> x 0) (+ 1 2 3))));->f
-
-(simple-check '(define (pos? x) (cond ((> x 0) #t) (else #f)))) ;-->t
-
-(simple-check +01i) ;->f
-
-(simple-check '(cond ((> x 0) (lambda (x) (+ x 1))) ((< x 0) (lambda (x) (- x 1))) (else (+ 2 3)))) ;->t
-
-(simple-check '(define x (lambda (x) (+ x 1))));->t
-
-(simple-check '(define x (lambda (x) (+ x 1 2))));->f
-
-(simple-check '(define (module x) (define (add m n) (cond ((zero? m) n) (else (+ 1 (add (- m 1) n))))) (cond ((eq? m add) add))));->t
 
 (simple-check '(define (module x)
                  (define (add m n) (cond ((zero? m) n) (else (+ 1 (add (- m 1) n)))))
@@ -267,6 +271,7 @@
                        ((eq? x mul) mul)
                        ((eq? x sub) sub))));->f
 
+(newline)
 
 #| ==========================================================================================
    Second Half
@@ -290,12 +295,18 @@
         ((equal? (car lst) element))
          (else (element-lst? element (cdr lst)))))
 
+(element-lst? 2 '(1 2 3));->t
+(element-lst? 4 '(1 2 3));->f
+
 ; Pre: Given 2 lists
 ; Post: Return the union set of both lists
 (define (union-lst lst1 lst2)
   (cond ((null? lst1) lst2)
         ((element-lst? (car lst1) lst2) (union-lst (cdr lst1) lst2))
         (else (cons (car lst1) (union-lst (cdr lst1) lst2)))))
+
+(union-lst '(1 2 3) '(2 3 4));->(1 2 3 4)
+(union-lst '(1 2 3) '(4 5 6));->(1 2 3 4 5 6)
 
 ; Changing to 2D env --> ((names) (vals))s
 (define (free-vars expr env)
