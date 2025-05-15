@@ -45,6 +45,7 @@ Lexical scope: scope of the variables is determined by its position in the code'
 
 ;Therefore,the TLS scheme correctly implements closure and lexical scope.
 
+Ex:
 (value '(((lambda (x) (lambda (y) (cons x y))) 2) 3))
 (value '((((lambda (x) (lambda (y) (lambda (z) (cons x (cons y z))))) 2) 3) 4))
 (value '(((lambda (x) (lambda (y) (car (cons x y)))) 2) 3))
