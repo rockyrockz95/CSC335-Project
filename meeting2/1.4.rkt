@@ -13,7 +13,7 @@ Lexical scope: scope of the variables is determined by its position in the code'
 (define (plus-1 x)
     (lambda () (+ x 1)))
 
-(plus-1 1) ;when you call plus-1 directly, it'll return a procedure, which is the inner lambda. It creates a closure where it captures the lexical environment, where it contains the binding of variable x with 1.
+(plus-1 1) ;when you call plus-1 directly, it'll return a procedure, which is the inner lambda and it creates a closure where it captures the lexical environment, where it contains the binding of variable x with 1.
 
 ((plus-1 1)); when you try to call the inner lambda, it will return 2 since we passed the argument 1 and the inner lambda should increment the input by 1. This is a result of closure. When plus-1 is called, it captures the lexical environment with x=1, then because of lexical scope, inner lambda would have access to the variable x because the varibale x is in its parent function's scope.
 
