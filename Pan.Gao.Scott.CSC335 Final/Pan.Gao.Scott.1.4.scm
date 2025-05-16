@@ -1,4 +1,7 @@
-(load "1.1.rkt")
+(load "Pan.Gao.Scott.1.1.scm")
+
+;;;Team: LingJie Pan, Xin Gao, Joquanna Scott
+
 ;1.4 Correctness Proof for Closure and Lexical Scope
 
 #|
