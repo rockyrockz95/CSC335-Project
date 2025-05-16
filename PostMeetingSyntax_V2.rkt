@@ -328,7 +328,6 @@
 (union-lst '(1 2 3) '(2 3 4));->(1 2 3 4)
 (union-lst '(1 2 3) '(4 5 6));->(1 2 3 4 5 6)
 
-; Changing to 2D env --> ((names) (vals))s
 (define (free-vars expr env)
       (cond
          ; if the var is in the expr, add to the list of free vars
