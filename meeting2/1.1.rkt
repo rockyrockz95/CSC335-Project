@@ -1,3 +1,4 @@
+(load "1.2.rkt")
 ;;; ====================================================
 ;;; TLS (The Little Schemer) Interpreter Implementation
 ;;; 
@@ -337,7 +338,7 @@
 ;; Post-condition: Returns the evaluated result of the expression using an initial empty environment.
 (define value
   (lambda (e)
-    (meaning e '())))
+    (if (simple-check e) (meaning e '()) "Error")))
 
 ;;; ====================================================
 ;;; SECTION 6: TEST CASES
@@ -399,4 +400,11 @@
 (value '((lambda (x) (cond ((zero? x) 'zero) (else 'nonzero))) 0)) ; => zero
 (value '((lambda (x) (cond ((zero? x) 'zero) (else 'nonzero))) 5)) ; => nonzero
 (newline)
+
+;;Test for invalid expression
+(value '((lambda (x) (cond ((zero? x 1) 'zero) (else 'nonzero))) 0));->Error
+(value '(cond (else 'ok) ((eq? 'x 'y) 'fail)));->Error
+(value '(cons 1 2 3));->Error
+(value 0+1i)
+(value '(+ 1 0+1i));->Error
 
