@@ -83,10 +83,7 @@
    ========================================================================================================================
 |# 
 
-(define initial-table
-  (lambda (name)
-    (error "Unbound variable:" name)))
-
+;;; CHANGE DEMO
 ;;; Environment Changes
   ;; Creating an entry in new representation: new-entry
    ; Pre: Given a name and value
