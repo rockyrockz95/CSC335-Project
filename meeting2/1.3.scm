@@ -1,7 +1,4 @@
 (load "1.1.rkt")
-
-;;; 1.3 Environment Subsystem Proof & Change in Representation
-
 ;=======================================================================================================================
 #|
  Environment Specification for TLS:
@@ -75,25 +72,65 @@
        Claim: The environment subsytem of TLS is structured in a way that allows it to act as
          an abstract data type. Therefore, an a-list structure for the env, rather than the list of bindings, still satisfies
          the specifications stated above.
+           * If this is true, then the action functions that utilize the subsystem should return
+              the same value as the original interpreter's representation
 
        ; Environment properties: The only functions that need to be changed to adjust to the new
           structure are the the primary components of the subsystem.
        
        ; Interpreter properties: The implementation of the action functions do not need to change. As the ADS allows for
           operations to work even with differing structure
-         
-
    ========================================================================================================================
 |# 
 
+(define initial-table
+  (lambda (name)
+    (error "Unbound variable:" name)))
+
 ;;; Environment Changes
-  ;; Creating an env: build & new-entry
-  ;; Extending the table -- needs no change, cons'ing the pair to the front of the stack maintains scope
+  ;; Creating an entry in new representation: new-entry
+   ; Pre: Given a name and value
+   ; Post: Construct an alist consisting of pairs of names and their corresponding values (name value)
+      ; * set condition is assumed, like in TLS
+  (define (alist-new-entry name value)
+    (map list name value))
+
+  (define alist (alist-new-entry '(x y z) '(1 2 3))) ; --> ((x 1) (y 2) (z 3))
+  (define normal (new-entry '(x y z) '(1 2 3))) ; --> ((x y z) (1 2 3))
+
+  ;;; Extending the table -- needs no change, cons'ing the pair to the front of the stack maintains scope
     ; and fulfills the expectations of the action functions
-  ;; Table Lookup: lookup-in-entry & lookup-in-table -- must be changed to account for alist structure.
+    ; Pre & Post remain the same, as does its stacking of frames in the system
+  (extend-table (list 'w 4) (list alist)) ; --> ((w 4)((x y) (y 2) (z 3))
+  
+  ;;; Table Lookup: lookup-in-entry & lookup-in-table -- must be changed to account for alist structure.
 
-;;; Action Function Calls ****
+  ;;; lookup-in-entry
+   ;; Pre-condition: The entry is a single list of (name val) pairs.
+   ;; Post-condition: If the name is found, returns the corresponding value; otherwise, invokes entry-f.
+     ; The first matching pair is returned, showing that the innermost scope's value is maintained
+  (define (alist-lookup-in-entry name entry entry-f)
+    (cond ((null? entry) (entry-f))
+      ((eq? (caar entry) name) (cadar entry)) ; return the second element if the the first matches name
+      (else (a-lookup-in-entry name (cdr entry) entry-f))))
+
+  ; input as entries
+  (lookup-in-entry 'x '((x y) (1 2)) initial-table) ; --> 1
+  (alist-lookup-in-entry 'x '((x 1) (y 2)) initial-table) ; --> 1
 
 
+  ;;; lookup-in-table
+  ;; Pre-condition: table is a list of environment entries.
+   ;; Post-condition: If the name is found in any entry, return its value; otherwise, invoke table-f.
+   ;(define (lookup-in-entry name entry entry-f))
+  ; ((TLS 'table) 'x normal initial-table)
+  (define (alist-lookup-in-table name table table-f)
+    (cond ((null? table) (table-f name))
+          (else (alist-lookup-in-entry name (car table) 
+             (lambda (name)(alist-lookup-in-table name (cdr table) table-f))))))
+
+   ; input as tables
+  (lookup-in-table 'x (list normal) initial-table) ; --> 1
+  (alist-lookup-in-table 'x (list alist) initial-table) ; --> 1
   
 
