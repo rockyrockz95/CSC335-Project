@@ -220,18 +220,36 @@ SECTION 4: Test Cases:
 
 1.3
 
-Helper Function
-●	Accessor Functions for *Let:
-o	(*let-body) - Returns the body of a *let expression
-o	(*let-init) - Returns the initial values provided in the bindings
-o	(*let-vars) - Returns the variables/names provided in the bindings
-o	(*let?) - Predicate for determining if a given expression is a *let expression
-●	(merge lst1 lst2) - Returns the elements of lst1 and lst2 as a merged interwoven list
+;; Environment properties: ****
+      - Env structure: A nested list
+      - Entry structure: "An entry is a pair of lists whose first list is a set. Also,
+          the lists must be of equal length."
+            * Implies that every valid variable in TLS is bound
+  
+  ;; The primary operations that handle environment management are: 
+         - new-entry:
+             * Pre-condition: The first argument is a list of names and the second is a list of corresponding values.
+             * Post-condition: Returns a new environment entry, represented as a pair of names and values.
+         - lookup-in-entry
+             * Pre-condition: The entry is a pair of two lists (names and values).
+             * Post-condition: If the name is found, returns the corresponding value; otherwise, invokes entry-f.
+         - extend-table
+             * Pre-condition: New entry is a valid environment entry.
+             * Post-condition: Returns a new environment table with the entry added at the front.
+         - lookup-in-table
+             * Pre-condition: table is a list of environment entries.
+             * Post-condition: If the name is found in any entry, return its value; otherwise, invoke table-f.
+  
+  ;; In tandem, these functions are used to build and maintain a stack of environment entries (bindings).
 
-Top Level Function
-●	(*let expr table) - Action function meant to evaluate the components of a let expression and maintain its current environment.
-o	As of 5/8/25: Does not perform as intended (as syntactic sugar for lambda)
-●	(new-binding entry) - Changes the representation of a TLS entry to (name value) using TLS’ provided accessors
+ Claim: The environment subsystem of TLS is structured in a way that allows it to act as
+         an abstract data type. Therefore, an a-list structure for the env, rather than the list of bindings, still satisfies
+         the above specifications.
+           * If this is true, then the action functions that utilize the subsystem should return
+              the same value as the original interpreter's representation
+
+       ; Environment properties: The only functions that need to be changed to adjust to the new
+          structure are the primary components of the subsystem.
 
 
 1.4 Correctness Proof for Closure and Lexical Scope
