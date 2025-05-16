@@ -1,7 +1,4 @@
 (load "Pan.Gao.Scott.1.2.scm")
-
-;;;Team: LingJie Pan, Xin Gao, Joquanna Scott
-
 ;;; ====================================================
 ;;; TLS (The Little Schemer) Interpreter Implementation
 ;;; 
@@ -338,7 +335,7 @@
 
 ;; Top-level evaluation function - starts with empty environment
 ;; Pre-condition: e is a Scheme expression.
-;; Post-condition: Returns the evaluated result of the expression using an initial empty environment.
+;; Post-condition: Check whether the expression is valid, if yes returns the evaluated result of the expression using an initial empty environment, if no, return error message.
 (define value
   (lambda (e)
     (if (simple-check e) (meaning e '()) "Error")))
@@ -410,4 +407,5 @@
 (value '(cons 1 2 3));->Error
 (value 0+1i)
 (value '(+ 1 0+1i));->Error
+
 
