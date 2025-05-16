@@ -256,7 +256,7 @@ SECTION 4: Test Cases:
 
 Closure: the function to capture environment at definition time, so that functions can have access to variables from its outer function, even after the outer function executed.
 
-Lexical scope: the scope of the variables is determined by its position in the code's structure. In TLS, the lexical environment for the outer-most function is empty, and the lexical environment of the inner functions is the extended environment with entries of variables and their value, where it can access variables from its parent function's scope(including the global scope). The lexical scope is determined at the time of definition not execution, this allows access to variables in outer function even after execution.  
+Lexical scope: the scope of the variables is determined by its position in the code's structure. In TLS, the lexical environment for the outer-most function is empty, and the lexical environment of the inner functions is the extended environment with entries of variables and their value, where it can access variables from its parent functions. The lexical scope is determined at the time of definition not execution, this allows access to variables in outer function even after execution.  
 
 Atomic expression(number, Boolean, primitives, identifiers) will be trivial to the correctness of implementation of closure and lexical scope, as number and Booleans are self-evaluating constants, and primitives and identifiers do not create closure themselves, if they need to search up their arguments, they will just refer to their environment, in a closure, the environment they will be referring to is the environment obtained by closure.
 
