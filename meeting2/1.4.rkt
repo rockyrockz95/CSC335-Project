@@ -5,7 +5,7 @@
 
 Closure: the function to capture environment at definition time, so that functions can have access to variables from its outer function, even after the outer function executed.
 
-Lexical scope: the scope of the variables is determined by its position in the code's structure. In TLS, the lexical environment for the outer-most function is empty, and the lexical environment of the inner functions is the extended environment with entries of variables and their value, where it can access variables from its parent function's scope(including the global scope). The lexical scope is determined at the time of definition not execution, this allows access to variables in outer function even after execution.  
+Lexical scope: the scope of the variables is determined by its position in the code's structure. In TLS, the lexical environment for the outer-most function is empty, and the lexical environment of the inner functions is the extended environment with entries of variables and their value, where it can access variables from its parent functions. The lexical scope is determined at the time of definition not execution, this allows access to variables in outer function even after execution.  
 
 |#
   
